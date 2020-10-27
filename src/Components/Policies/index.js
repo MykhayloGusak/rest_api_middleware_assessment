@@ -23,9 +23,15 @@ module.exports.Policies = ({ dataAccess }) => {
      */
     getOneById: async (req, res, next) => {
       try {
-        // define params
-        // check roles
-        // responde to the clinet
+        const solicitedPolicyId = req.params.policyId;
+        const { role, clientId } = req.scope;
+
+        const { item } = await data.findOne(solicitedPolicyId);
+
+        if (item.clientId !== clientId && role !== 'admin')
+          return res.status(403).json({ code: 403, message: 'Forbidden' });
+
+        return res.status(200).json(item).end();
       } catch (err) {
         next(err);
       }
@@ -40,10 +46,17 @@ module.exports.Policies = ({ dataAccess }) => {
      */
     list: async (req, res, next) => {
       try {
-        // define params
-        // define queries
-        // check roles
-        // responde to the clinet
+        const currentClientId = req.scope.clientId;
+        const currentClientRole = req.scope.role;
+        const { page = 1, limit = 10 } = req.query;
+
+        const { items } = await data.findMany({
+          page,
+          limit,
+          clientId: currentClientRole !== 'admin' ? currentClientId : undefined,
+        });
+
+        res.status(200).json(items).end();
       } catch (err) {
         next(err);
       }
@@ -58,10 +71,21 @@ module.exports.Policies = ({ dataAccess }) => {
      */
     listByClientId: async (req, res, next) => {
       try {
-        // define params
-        // define queries
-        // check roles
-        // responde to the clinet
+        const currentClientId = req.scope.clientId;
+        const currentClientRole = req.scope.role;
+        const solicitedClientId = req.path.clientId;
+
+        if (
+          currentClientId !== solicitedClientId &&
+          currentClientRole !== 'admin'
+        )
+          return res.status(403).json({ code: 403, message: 'Forbidden' });
+
+        const { items } = await data.findMany({
+          clientId: solicitedClientId,
+        });
+
+        res.status(200).json(items).end();
       } catch (err) {
         next(err);
       }
