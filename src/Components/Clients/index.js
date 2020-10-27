@@ -25,14 +25,20 @@ module.exports.Clients = ({ dataAccess }) => {
      */
     getOneById: async (req, res, next) => {
       try {
-        // define params
+        const solicitedClientId = req.params.clientId;
+        const currentClientId = req.scope.clientId;
 
-        // check role
+        const currentClientRole = req.scope.role;
 
-        // get Item
+        if (
+          solicitedClientId !== currentClientId &&
+          currentClientRole !== 'admin'
+        )
+          return res.status(403);
 
-        // response to client
-        res.status(200).json();
+        const { item } = await _Clients.findOne(clientId);
+
+        res.status(200).json(item);
       } catch (err) {
         next(err);
       }
@@ -47,13 +53,18 @@ module.exports.Clients = ({ dataAccess }) => {
      */
     list: async (req, res, next) => {
       try {
-        // define params
-        // define queries
+        const currentClientId = req.scope.clientId;
+        const currentClientRole = req.scope.role;
+        const { limit = 10, page = 1, name } = req.query;
 
-        // list items within query
+        const { items } = await _Clients.findMany({
+          limit,
+          page,
+          name,
+          clientId: currentClientRole !== 'admin' ? currentClientId : undefined,
+        });
 
-        // responde to client
-        res.status(200).json();
+        res.status(200).json(items);
       } catch (err) {
         next(err);
       }
