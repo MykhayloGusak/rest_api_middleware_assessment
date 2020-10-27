@@ -6,9 +6,18 @@
  * @return {object}
  */
 
-module.exports.Cache = () => {
+module.exports.Cache = ({ expiresIn, maxItems }) => {
   const cached = [];
   // validate input params
+
+  const cachedExpiresIn = expiresIn ? expiresIn * 1000 : 30 * 1000;
+  const cachedItemsLimit = maxItems ? maxItems : 5;
+
+  const _findCacheByKey = (key) => {};
+
+  const _saveCacheByKey = (key, value) => {};
+
+  const _deleteCacheByKey = (key) => {};
 
   return {
     /**
@@ -20,9 +29,12 @@ module.exports.Cache = () => {
      */
     setItem: (keyName, keyValue) => {
       try {
-        // validate input
+        // validate inputs
 
-        // get item by key, if not exists return undefiend, if existis return item
+        if (cached.length >= cachedItemsLimit) return null;
+
+        _saveCacheByKey(keyName, keyValue);
+
         return undefined;
       } catch (err) {
         throw err;
@@ -39,9 +51,17 @@ module.exports.Cache = () => {
       try {
         // validate input
 
-        // return cached item
+        const foundCachedItem = _findCacheByKey(keyName);
 
-        // if cache with provided key is not found, return undefuned
+        if (!foundCachedItem) return null;
+
+        const { value, date: cachedTime } = foundCachedItem;
+
+        let timeNow = Date.now();
+
+        if (timeNow - cachedTime < cachedExpiresIn) return value;
+
+        _deleteCacheByKey(keyName);
 
         return null;
       } catch (err) {
@@ -60,9 +80,11 @@ module.exports.Cache = () => {
       try {
         // validate input
 
-        // find item, if not exists return null
+        const foundCachedItem = _findCacheByKey(keyName);
 
-        // delete item
+        if (!foundCachedItem) return undefined;
+
+        _deleteCacheByKey(keyName);
 
         return undefined;
       } catch (err) {
