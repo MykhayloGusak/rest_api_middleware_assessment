@@ -8,16 +8,55 @@
 
 module.exports.Cache = ({ expiresIn, maxItems }) => {
   const cached = [];
-  // validate input params
+
+  if (expiresIn && !Number.isInteger(expiresIn))
+    throw Error('"expiresIn" must be a number');
+  if (maxItems && !Number.isInteger(maxItems))
+    throw Error('"maxItems" must be a number');
 
   const cachedExpiresIn = expiresIn ? expiresIn * 1000 : 30 * 1000;
   const cachedItemsLimit = maxItems ? maxItems : 5;
 
-  const _findCacheByKey = (key) => {};
+  const _findCacheByKey = (key) => {
+    let cache = undefined;
 
-  const _saveCacheByKey = (key, value) => {};
+    if (key) {
+      let index = cached.findIndex((cachedItem) => cachedItem.key === key);
+      if (index > -1) cache = cached[index];
+    } else {
+    }
 
-  const _deleteCacheByKey = (key) => {};
+    return cache;
+  };
+
+  const _saveCacheByKey = (key, value) => {
+    const timeNow = Date.now();
+
+    let index = cached.findIndex((cachedItem) => cachedItem.key === key);
+
+    if (index > -1) {
+      cached[index].value = value;
+      cached[index].date = timeNow;
+    } else {
+      const newItemToCache = {
+        date: timeNow,
+        value: value,
+        key: key,
+      };
+
+      cached.push(newItemToCache);
+    }
+
+    return undefined;
+  };
+
+  const _deleteCacheByKey = (key) => {
+    let index = cached.findIndex((cachedItem) => cachedItem.key === key);
+
+    if (index > -1) cached.splice(index, 1);
+
+    return undefined;
+  };
 
   return {
     /**
