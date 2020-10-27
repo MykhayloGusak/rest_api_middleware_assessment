@@ -1,0 +1,26 @@
+{
+  "name": "rest_api_middleware_assessment",
+  "version": "0.0.1",
+  "description": "Backend API REST for Insurance Company (Assessment)",
+  "main": "index.js",
+  "scripts": {
+    "test": "npm run test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MykhayloGusak/rest_api_middleware_assessment.git"
+  },
+  "keywords": [
+    "AXA",
+    "Assessment",
+    "REST",
+    "API",
+    "Middleware"
+  ],
+  "author": "Mykhaylo Gusak",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/MykhayloGusak/rest_api_middleware_assessment/issues"
+  },
+  "homepage": "https://github.com/MykhayloGusak/rest_api_middleware_assessment#readme"
+}
