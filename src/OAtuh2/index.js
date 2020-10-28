@@ -23,7 +23,6 @@ module.exports.OAuth2 = ({ cache, expiresIn }) => {
   const accessSecret = process.env.SECRET_ACCESS || 'test';
   const refreshSecret = process.env.SECRET_REFRESH || 'testRefresh';
   // {
-  //   username: string,
   //   accessToken: string,
   //   refreshToken: string,
   //   resourceToken: string
@@ -126,7 +125,7 @@ module.exports.OAuth2 = ({ cache, expiresIn }) => {
             .json({ message: 'Internal Server Error', code: 500 })
             .end();
 
-        session.setItem(username, {
+        session.setItem(currentUser.clientId, {
           accessToken,
           refreshToken,
           resourceToken,
@@ -156,10 +155,10 @@ module.exports.OAuth2 = ({ cache, expiresIn }) => {
 
         const scope = jwt.verify(accessToken, accessSecret);
 
-        if (!scope.role || !scope.username)
+        if (!scope.role || !scope.clientId)
           return res.status(403).json({ message: 'Forbidden' }).end();
 
-        req.session.username = scope.username;
+        req.session.clientId = scope.clientId;
         req.session.role = scope.role;
 
         // const userSession = session.getItem(username);
@@ -167,17 +166,8 @@ module.exports.OAuth2 = ({ cache, expiresIn }) => {
         next();
       } catch (err) {}
     },
-    resourceToken: {
-      get: () => {},
-      refresh: () => {},
-    },
-    accessToken: {
-      get: () => {},
-      refresh: () => {},
-    },
-    refreshToken: {
-      get: () => {},
-      refresh: () => {},
+    client: (clientId) => {
+      return {};
     },
   };
 };

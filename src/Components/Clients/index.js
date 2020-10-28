@@ -26,15 +26,14 @@ module.exports.Clients = ({ dataAccess }) => {
     getOneById: async (req, res, next) => {
       try {
         const solicitedClientId = req.params.clientId;
-        const currentClientId = req.scope.clientId;
-
-        const currentClientRole = req.scope.role;
+        const currentClientId = req.session.clientId;
+        const currentClientRole = req.session.role;
 
         if (
           solicitedClientId !== currentClientId &&
           currentClientRole !== 'admin'
         )
-          return res.status(403);
+          return res.status(403).json({ message: 'Forbidden' }).end();
 
         const { item } = await _Clients.findOne(clientId);
 
@@ -53,8 +52,8 @@ module.exports.Clients = ({ dataAccess }) => {
      */
     list: async (req, res, next) => {
       try {
-        const currentClientId = req.scope.clientId;
-        const currentClientRole = req.scope.role;
+        const currentClientId = req.session.clientId;
+        const currentClientRole = req.session.role;
         const { limit = 10, page = 1, name } = req.query;
 
         const { items } = await _Clients.findMany({

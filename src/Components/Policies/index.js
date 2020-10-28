@@ -24,7 +24,7 @@ module.exports.Policies = ({ dataAccess }) => {
     getOneById: async (req, res, next) => {
       try {
         const solicitedPolicyId = req.params.policyId;
-        const { role, clientId } = req.scope;
+        const { role, clientId } = req.session;
 
         const { item } = await data.findOne(solicitedPolicyId);
 
@@ -46,8 +46,8 @@ module.exports.Policies = ({ dataAccess }) => {
      */
     list: async (req, res, next) => {
       try {
-        const currentClientId = req.scope.clientId;
-        const currentClientRole = req.scope.role;
+        const currentClientId = req.session.clientId;
+        const currentClientRole = req.session.role;
         const { page = 1, limit = 10 } = req.query;
 
         const { items } = await data.findMany({
@@ -71,8 +71,8 @@ module.exports.Policies = ({ dataAccess }) => {
      */
     listByClientId: async (req, res, next) => {
       try {
-        const currentClientId = req.scope.clientId;
-        const currentClientRole = req.scope.role;
+        const currentClientId = req.session.clientId;
+        const currentClientRole = req.session.role;
         const solicitedClientId = req.path.clientId;
 
         if (
