@@ -4,7 +4,12 @@
  * @param {string} paramName - The name of the value that is tested.
  * @param {any} paramValue - The value to be tested for being an integer.
  *
- * @return {undefined}
+ * @return {{
+ *   string: (),
+ *   number: (),
+ *   integer: (),
+ *   required: ()
+ * }}
  * @throws {Error} - "paramName" must be a string
  * @throws {Error} - "paramName" must be a number
  * @throws {Error} - "paramName" must be a integer
