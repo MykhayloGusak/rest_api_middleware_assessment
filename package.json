@@ -22,5 +22,14 @@
   "bugs": {
     "url": "https://github.com/MykhayloGusak/rest_api_middleware_assessment/issues"
   },
-  "homepage": "https://github.com/MykhayloGusak/rest_api_middleware_assessment#readme"
+  "homepage": "https://github.com/MykhayloGusak/rest_api_middleware_assessment#readme",
+  "dependencies": {
+    "body-parser": "^1.19.0",
+    "config": "^3.3.2",
+    "cors": "^2.8.5",
+    "dotenv": "^8.2.0",
+    "express": "^4.17.1",
+    "helmet": "^4.1.1",
+    "morgan": "^1.10.0"
+  }
 }
