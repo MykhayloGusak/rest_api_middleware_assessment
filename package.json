@@ -25,5 +25,8 @@
   "homepage": "https://github.com/MykhayloGusak/rest_api_middleware_assessment#readme",
   "devDependencies": {
     "jest": "^26.6.1"
+  },
+  "dependencies": {
+    "jsonwebtoken": "^8.5.1"
   }
 }
