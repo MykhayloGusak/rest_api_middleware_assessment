@@ -1,5 +1,6 @@
 const { validate } = require('../Utils/validate');
 const jwt = require('jsonwebtoken');
+const axios = require('axios');
 
 /**
  * Policies module (factory function)
@@ -22,7 +23,7 @@ module.exports.OAuth2 = ({ cache, expiresIn }) => {
   let expiringTime = expiresIn ? expiresIn : 2 * 60;
   const accessSecret = process.env.SECRET_ACCESS || 'secretAccess';
   const refreshSecret = process.env.SECRET_REFRESH || 'secretRefresh';
-  
+
   // {
   //   accessToken: string,
   //   refreshToken: string,
@@ -40,12 +41,11 @@ module.exports.OAuth2 = ({ cache, expiresIn }) => {
           }
         );
 
-        axaToken = data.token;
-        expiringDate = new Data(Date.now() + 1000 * 60 * 10);
+        expiringDate = new Date(Date.now() + 1000 * 60 * 10);
 
-        return data.token;
+        resolve({ resourceToken: data.token, expiresIn: expiringDate });
       } catch (err) {
-        debugger;
+        reject(err);
       }
     });
 
@@ -75,9 +75,9 @@ module.exports.OAuth2 = ({ cache, expiresIn }) => {
           }
         );
 
-        const currentUser = usersList.find((singleUser) => {
-          singleUser.name === name;
-        });
+        const currentUser = usersList.find(
+          (singleUser) => singleUser.name === name
+        );
 
         if (!currentUser) return null;
 
@@ -107,7 +107,7 @@ module.exports.OAuth2 = ({ cache, expiresIn }) => {
         validate(username).required().string();
         validate(password).required().string();
 
-        const resourceToken = await _recourceLogin(password);
+        const { resourceToken } = await _recourceLogin(password);
 
         const currentUser = await _resourceUserByName(username, resourceToken);
 
@@ -126,7 +126,7 @@ module.exports.OAuth2 = ({ cache, expiresIn }) => {
             .json({ message: 'Internal Server Error', code: 500 })
             .end();
 
-        session.setItem(currentUser.clientId, {
+        session.setItem(currentUser.id, {
           accessToken,
           refreshToken,
           resourceToken,
@@ -156,16 +156,22 @@ module.exports.OAuth2 = ({ cache, expiresIn }) => {
 
         const scope = jwt.verify(accessToken, accessSecret);
 
-        if (!scope.role || !scope.clientId)
+        if (!scope.role || !scope.id)
           return res.status(403).json({ message: 'Forbidden' }).end();
 
-        req.session.clientId = scope.clientId;
-        req.session.role = scope.role;
+        const session = {
+          clientId: scope.id,
+          role: scope.role,
+        };
+
+        req.session = session;
 
         // const userSession = session.getItem(username);
 
         next();
-      } catch (err) {}
+      } catch (err) {
+        res.status(500).json({ error: JSON.stringify(err) });
+      }
     },
     client: (clientId) => {
       return {};
