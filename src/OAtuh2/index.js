@@ -7,7 +7,8 @@
  *  login: (req,res,next),
  *  check: (req,res,next),
  *  accessToken:{
- *    get: ()
+ *    get: (),
+ *    refresh: (),
  *  }
  * }}
  */
