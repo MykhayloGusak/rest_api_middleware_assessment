@@ -7,7 +7,7 @@ const morgan = require('morgan');
 // require('dotenv').config();
 let port = 3030;
 
-const router = require('../Routes');
+const api = require('../Routes');
 
 const App = () => {
   const app = express();
@@ -28,7 +28,7 @@ const App = () => {
   app.use(morgan('dev'));
 
   // user user router
-  userRouter.routes(router);
+  app.use('/api/v1', api);
 
   // error handler
   // app.use(errorHandler);
