@@ -20,8 +20,9 @@ module.exports.OAuth2 = ({ cache, expiresIn }) => {
   let axaToken;
   let expiringDate;
   let expiringTime = expiresIn ? expiresIn : 2 * 60;
-  const accessSecret = process.env.SECRET_ACCESS || 'test';
-  const refreshSecret = process.env.SECRET_REFRESH || 'testRefresh';
+  const accessSecret = process.env.SECRET_ACCESS || 'secretAccess';
+  const refreshSecret = process.env.SECRET_REFRESH || 'secretRefresh';
+  
   // {
   //   accessToken: string,
   //   refreshToken: string,
