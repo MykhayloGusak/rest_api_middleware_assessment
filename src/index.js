@@ -1,8 +1,7 @@
-const app = require('./app');
+// server config
+const app = require('./Server/app');
 
-const port = process.env.PORT || 5000;
-app.listen(port, () => {
-  /* eslint-disable no-console */
-  console.log(`Listening: http://localhost:${port}`);
-  /* eslint-enable no-console */
-});
+(async () => {
+  console.log(`app running on port ${app.get('port')}`);
+  await app.listen(app.get('port'));
+})();
