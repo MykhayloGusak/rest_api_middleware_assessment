@@ -1,4 +1,5 @@
 const router = require('express').Router();
+const config = require('config');
 
 const { Clients } = require('../Components/Clients');
 const { Policies } = require('../Components/Policies');
@@ -17,7 +18,7 @@ const oauth2 = OAuth2({
 
 const clients = Clients({
   dataAccess: DataAccess({
-    uri: process.env.AXA_URL_CLIENTS,
+    uri: config.uri.axa_clients,
     cache: cache,
     authorization: oauth2,
   }),
@@ -25,7 +26,7 @@ const clients = Clients({
 
 const policies = Policies({
   dataAccess: DataAccess({
-    uri: process.env.AXA_URL_POLICIES,
+    uri: config.uri.axa_policies,
     cache: cache,
     authorization: oauth2,
   }),
@@ -35,7 +36,11 @@ router.post('/login', oauth2.login);
 
 router.get('/clients', oauth2.check, clients.list);
 router.get('/clients/:clientId', oauth2.check, clients.getOneById);
-router.get('/clients/:clientId/policies', oauth2.check, policies.listByClientId);
+router.get(
+  '/clients/:clientId/policies',
+  oauth2.check,
+  policies.listByClientId
+);
 
 router.get('/policies', oauth2.check, policies.list);
 router.get('/policies/:policyId', oauth2.check, policies.getOneById);
