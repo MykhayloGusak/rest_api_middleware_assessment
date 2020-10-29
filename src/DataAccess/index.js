@@ -76,8 +76,11 @@ module.exports.DataAccess = ({ uri, cache, authorization }) => {
     });
   return {
     /**
-     * ...
+     * Get one entity by id
      *
+     * @param {string} paramName - Filter by field "id"
+     * @param {number} value - Value to be equal
+     * @return {object} - Requested entity
      */
     findOneBy: (paramName, value) =>
       new Promise(async (resolve, reject) => {
@@ -99,8 +102,14 @@ module.exports.DataAccess = ({ uri, cache, authorization }) => {
         }
       }),
     /**
-     * ...
+     * Find many entities
      *
+     * @param {object} options
+     * @param {number} options.page - Page number
+     * @param {number} options.limit - Limit of pages per request
+     * @param {number} options.id - Filter by field "id"
+     * @param {number} options.clientId - Filter by field "clientId"
+     * @return {{ items: array }} - List of entities
      */
     findMany: ({ page, limit, name, id, clientId }) =>
       new Promise(async (resolve, reject) => {
@@ -128,7 +137,7 @@ module.exports.DataAccess = ({ uri, cache, authorization }) => {
             if (filters.every((filter) => filter(testedItem)))
               return testedItem;
           });
-          
+
           if (page && limit)
             filteredAndPaginatedItems = filteredAndPaginatedItems.splice(
               (page - 1) * limit,

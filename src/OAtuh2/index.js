@@ -2,6 +2,7 @@ const { validate } = require('../Utils/validate');
 const jwt = require('jsonwebtoken');
 const axios = require('axios');
 require('dotenv').config();
+const config = require('config');
 
 /**
  * OAuth2 module (factory function)
@@ -25,11 +26,13 @@ module.exports.OAuth2 = ({ accessTokenExpiresIn }) => {
   const expiringAccessTokenTime = accessTokenExpiresIn || 10 * 60;
   const accessSecret = process.env.SECRET_ACCESS || 'secretAccess';
   const generalClientPassword = process.env.CLIENT_GENERAL_PASSWORD || '123';
+  const loginUri = config.uri.axa_login;
+  const clientsUri = config.uri.axa_clients;
 
   const _recourceLogin = () =>
     new Promise(async (resolve, reject) => {
       try {
-        const { data } = await axios.post(process.env.AXA_URL_LOGIN, {
+        const { data } = await axios.post(loginUri, {
           client_id: process.env.AXA_CLIENT_ID,
           client_secret: process.env.AXA_CLIENT_SECRET,
         });
@@ -46,14 +49,11 @@ module.exports.OAuth2 = ({ accessTokenExpiresIn }) => {
     new Promise(async (resolve, reject) => {
       try {
         const { token } = await _getResourceToken();
-        const { data: usersList } = await axios.get(
-          process.env.AXA_URL_CLIENTS,
-          {
-            headers: {
-              authorization: 'Bearer ' + token,
-            },
-          }
-        );
+        const { data: usersList } = await axios.get(clientsUri, {
+          headers: {
+            authorization: 'Bearer ' + token,
+          },
+        });
 
         const currentUser = usersList.find(
           (singleUser) => singleUser.name === name
