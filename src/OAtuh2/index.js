@@ -110,7 +110,7 @@ module.exports.OAuth2 = ({ accessTokenExpiresIn }) => {
     login: async (req, res, next) => {
       try {
         const { username, password } = req.body;
-        debugger
+
         validate(username).required().string();
         validate(password).required().string();
 
