@@ -27,12 +27,7 @@ module.exports.Policies = ({ dataAccess }) => {
       try {
         const solicitedPolicyId = req.params.policyId;
         const { role, clientId } = req.session;
-        debugger;
-        const { item } = await _Policies.findOneBy(
-          'id',
-          solicitedPolicyId
-        );
-        debugger;
+        const { item } = await _Policies.findOneBy('id', solicitedPolicyId);
         if (!item && role === 'admin') {
           return res.status(404).json({ code: 404, message: 'Not Found' });
         } else if (!item) {
@@ -88,16 +83,21 @@ module.exports.Policies = ({ dataAccess }) => {
       try {
         const currentClientId = req.session.clientId;
         const currentClientRole = req.session.role;
-        const solicitedClientId = req.path.clientId;
+        const solicitedClientId = req.params.clientId;
+
+        const page = req.query.page ? +req.query.page : 1;
+        const limit = req.query.limit ? +req.query.limit : 10;
 
         if (
           currentClientId !== solicitedClientId &&
           currentClientRole !== 'admin'
         )
           return res.status(403).json({ code: 403, message: 'Forbidden' });
-
         const { items } = await _Policies.findMany({
-          clientId: solicitedClientId,
+          page,
+          limit,
+          clientId:
+            currentClientRole === 'admin' ? solicitedClientId : currentClientId,
         });
 
         res.status(200).json(items).end();
