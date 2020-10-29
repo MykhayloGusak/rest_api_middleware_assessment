@@ -4,7 +4,9 @@
   "description": "Backend API REST for Insurance Company (Assessment)",
   "main": "index.js",
   "scripts": {
-    "test": "npm run test"
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js",
+    "dev:d": "node --inspect-brk src/index.js"
   },
   "repository": {
     "type": "git",

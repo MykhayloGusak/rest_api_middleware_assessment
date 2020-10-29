@@ -4,8 +4,8 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const morgan = require('morgan');
 // const config = require('config');
-// require('dotenv').config();
-let port = 3030;
+require('dotenv').config();
+let port = process.env.PORT || 3000;
 
 const api = require('../Routes');
 

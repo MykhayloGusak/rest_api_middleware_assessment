@@ -1,119 +1,141 @@
 const axios = require('axios');
 const { validate } = require('../Utils/validate');
+require('dotenv').config();
 
 /**
  * Data Access module (factory function)
  *
- * @param {object} options
+ * @param {Object} options
  * @param {string} options.uri - Url resource
- * @param {object} options.caching - Cahcing module
- * @param {object} options.Auth - Auth module
+ * @param {Object} options.caching - Cahcing module
+ * @param {Object} options.Auth - Auth module
  * @return {{
  *  findOne: (id),
  *  findMany: ({
- *    page: number, 
+ *    page: number,
  *    limit: number,
- *    name: string, 
+ *    name: string,
  *    clientId: string
  *  }),
  * }}
  */
-module.exports.DataAccess = ({ uri, caching, Auth }) => {
-  const cache = caching;
-  const auth = Auth;
+module.exports.DataAccess = ({ uri, cache, authorization }) => {
+  const cacheed = cache;
+  const auth = authorization;
   const cacheKey = Math.random().toString(36).substr(2, 9);
-
-  const _queryFilters = {
-    name: (obj) => obj.name === name,
-    clientId: (obj) => obj.clientId === name,
-  };
 
   const _getItems = () =>
     new Promise(async (resolve, reject) => {
-      debugger;
-      const cachedItem = cache.getItem(cacheKey);
-      const axaToken = await auth.getToken();
+      try {
+        const cachedItem = cacheed.getItem(cacheKey);
+        const { token } = await auth.resourceToken.get();
 
-      const requestHeaders = {
-        authorization: `Bearer ${axaToken}`,
-        'If-None-Match': cachedItem ? cachedItem.value.etag : undefined,
-      };
+        const requestHeaders = {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            Accept: 'application/json',
+          },
+        };
 
-      let response;
+        if (cachedItem)
+          requestHeaders.headers['If-None-Match'] = cachedItem.etag;
 
-      for (let i = 1, limit = 2; i <= limit; i++) {
-        try {
-          response = await axios.get(uri, requestHeaders);
-          break;
-        } catch (err) {
-          if (err.status === 403 && cachedItem) {
-            response = cachedItem.value.data;
+        let response;
+        for (let i = 1, limit = 2; i <= limit; i++) {
+          try {
+            if (i === 2) {
+              const newToken = await auth.resourceToken.refresh();
+              requestHeaders.authorization = `Bearer ${newToken.token}`;
+            }
+            response = await axios.get(uri, requestHeaders);
             break;
-          } else if (i > 1) {
-            return reject(err);
+          } catch (err) {
+            if (err.response.status === 304 && cachedItem?.data) {
+              response = {
+                data: cachedItem.data,
+                headers: { etag: cachedItem.etag },
+              };
+              break;
+            } else if (i > 1) {
+              return reject(err);
+            }
           }
         }
-      }
+        const { headers, data } = response;
 
-      const { headers, data } = response;
+        if (
+          (!cachedItem && headers.etag) ||
+          (cachedItem && cachedItem?.etag !== headers?.etag)
+        )
+          cacheed.setItem(cacheKey, { etag: headers.etag, data: data });
 
-      if (!cachedItem && headers.etag)
-        cache.setItem(cacheKey, { etag: headers.etag, data: data });
-
-      return resolve(response);
-    });
-
-  /**
-   * ...
-   *
-   */
-  findOne = (id) =>
-    new Promise(async (resolve, reject) => {
-      try {
-        validate(id).required().string();
-
-        entityList = await _getItems();
-
-        const entity = entityList.find(
-          (currentEntity) => currentEntity.id === id
-        );
-
-        if (!entity) return resolve(null);
-
-        resolve(entity);
+        return resolve(data);
       } catch (err) {
         reject(err);
       }
     });
-  /**
-   * ...
-   *
-   */
-  findMany = ({ page, limit, name, clientId }) =>
-    new Promise(async (resolve, reject) => {
-      try {
-        validate(page).integer();
-        validate(limit).integer();
-        validate(id).string();
-        validate(clientId).string();
+  return {
+    /**
+     * ...
+     *
+     */
+    findOneBy: (paramName, value) =>
+      new Promise(async (resolve, reject) => {
+        try {
+          validate(value).required().string();
+          validate(paramName).required().string();
 
-        items = await _getItems();
-        if (!items) return resolve(null);
+          entityList = await _getItems();
 
-        if (name && typeof name === 'string') filters.push(_queryFilters.name);
-        if (clientId && typeof name === 'string')
-          filters.push(_queryFilters.clientId);
+          const entity = entityList.find(
+            (entity) => entity[paramName] === value
+          );
 
-        const filteredAndPaginatedItems = items
-          .filter((testedItem) => {
+          if (!entity) return resolve({ item: null });
+
+          return resolve({ item: entity });
+        } catch (err) {
+          reject(err);
+        }
+      }),
+    /**
+     * ...
+     *
+     */
+    findMany: ({ page, limit, name, id, clientId }) =>
+      new Promise(async (resolve, reject) => {
+        try {
+          validate(page, 'page').integer();
+          validate(limit, 'limit').integer();
+          validate(name, 'name').string();
+          validate(clientId, 'clientId').string();
+          validate(id, 'id').string();
+
+          items = await _getItems();
+          if (!items) return resolve({ items: null });
+
+          const filters = [];
+          if (name && typeof name === 'string')
+            filters.push((obj) => obj.name === name);
+
+          if (clientId && typeof clientId === 'string')
+            filters.push((obj) => obj.clientId === clientId);
+
+          if (id && typeof id === 'string')
+            filters.push((obj) => obj.id === id);
+
+          const filteredAndPaginatedItems = items.filter((testedItem) => {
             if (filters.every((filter) => filter(testedItem)))
               return testedItem;
-          })
-          .splice((page - 1) * limit, limit);
-
-        resolve({ items: filteredAndPaginatedItems });
-      } catch (err) {
-        reject(err);
-      }
-    });
+          });
+          const arr = filteredAndPaginatedItems.splice(
+            (page - 1) * limit,
+            limit
+          );
+          resolve({ items: arr });
+        } catch (err) {
+          reject(err);
+        }
+      }),
+  };
 };

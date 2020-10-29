@@ -1,73 +1,53 @@
 const { validate } = require('../Utils/validate');
 const jwt = require('jsonwebtoken');
 const axios = require('axios');
+require('dotenv').config();
 
 /**
- * Policies module (factory function)
+ * OAuth2 module (factory function)
  *
  * @param {Object} options
  * @param {Object} options.dataAccess - Data Access Layer
  * @return {{
  *  login: (req,res,next),
  *  check: (req,res,next),
- *  accessToken:{
- *    get: (),
- *    refresh: (),
+ *  resourceToken:{
+ *    get: ()
  *  }
  * }}
  */
-module.exports.OAuth2 = ({ cache, expiresIn }) => {
-  const session = cache;
+module.exports.OAuth2 = ({ accessTokenExpiresIn }) => {
   let axaToken;
   let expiringDate;
-  let expiringTime = expiresIn ? expiresIn : 2 * 60;
+  const tokenType = 'Bearer';
+  const resourceTokenTimeExpiration = 1000 * 60 * 10;
+
+  const expiringAccessTokenTime = accessTokenExpiresIn || 10 * 60;
   const accessSecret = process.env.SECRET_ACCESS || 'secretAccess';
-  const refreshSecret = process.env.SECRET_REFRESH || 'secretRefresh';
+  const generalClientPassword = process.env.CLIENT_GENERAL_PASSWORD || '123';
 
-  // {
-  //   accessToken: string,
-  //   refreshToken: string,
-  //   resourceToken: string
-  // }
-
-  const _recourceLogin = (password) =>
+  const _recourceLogin = () =>
     new Promise(async (resolve, reject) => {
       try {
-        const { data } = await axios.post(
-          'https://dare-nodejs-assessment.herokuapp.com/api/login',
-          {
-            client_id: 'axa',
-            client_secret: password, //  's3cr3t'
-          }
-        );
+        const { data } = await axios.post(process.env.AXA_URL_LOGIN, {
+          client_id: process.env.AXA_CLIENT_ID,
+          client_secret: process.env.AXA_CLIENT_SECRET,
+        });
 
-        expiringDate = new Date(Date.now() + 1000 * 60 * 10);
+        let expires_in = new Date(Date.now() + 1000 * 60 * 10);
 
-        resolve({ resourceToken: data.token, expiresIn: expiringDate });
+        resolve({ token: data.token, expires_in });
       } catch (err) {
         reject(err);
       }
     });
 
-  const _getValidAxaToken = () =>
+  const _resourceUserByName = (name) =>
     new Promise(async (resolve, reject) => {
       try {
-        const timeNow = Date.now();
-
-        if (!axaToken || expiringDate - timeNow < 1000 * 5)
-          await _refreshAxaToken();
-
-        resolve(axaToken);
-      } catch (err) {
-        reject(err);
-      }
-    });
-
-  const _resourceUserByName = (name, token) =>
-    new Promise(async (resolve, reject) => {
-      try {
+        const { token } = await _getResourceToken();
         const { data: usersList } = await axios.get(
-          'https://dare-nodejs-assessment.herokuapp.com/api/clients',
+          process.env.AXA_URL_CLIENTS,
           {
             headers: {
               authorization: 'Bearer ' + token,
@@ -87,65 +67,74 @@ module.exports.OAuth2 = ({ cache, expiresIn }) => {
       }
     });
 
-  const _accessToken = {
-    generate: (scope) =>
-      jwt.sign(scope, accessSecret, { expiresIn: expiringTime }),
-  };
+  const _generateAccessToken = (scope) =>
+    jwt.sign(scope, accessSecret, { expiresIn: expiringAccessTokenTime });
 
-  const _refreshToken = {
-    generate: (scope) =>
-      jwt.sign(scope, refreshSecret, { expiresIn: expiringTime }),
-  };
+  const _generateResourceToken = () =>
+    new Promise(async (resolve, reject) => {
+      try {
+        const { token, expires_in } = await _recourceLogin();
 
-  const _resourceToken = {};
+        axaToken = token;
+        expiringDate = expires_in;
+
+        resolve({ token: token, expires_in: expires_in });
+      } catch (err) {
+        reject(err);
+      }
+    });
+
+  const _getResourceToken = () =>
+    new Promise(async (resolve, reject) => {
+      try {
+        const timeNow = Date.now();
+        if (axaToken && expiringDate - timeNow < resourceTokenTimeExpiration) {
+          return resolve({
+            token: axaToken,
+            expires_in: expiringDate,
+          });
+        } else {
+          const newResourceToken = await _generateResourceToken();
+
+          return resolve({
+            token: newResourceToken.token,
+            expires_in: newResourceToken.expires_in,
+          });
+        }
+      } catch (err) {
+        reject(err);
+      }
+    });
 
   return {
-    login: async (req, res) => {
+    login: async (req, res, next) => {
       try {
         const { username, password } = req.body;
-
+        debugger
         validate(username).required().string();
         validate(password).required().string();
 
-        const { resourceToken } = await _recourceLogin(password);
+        const currentUser = await _resourceUserByName(username);
 
-        const currentUser = await _resourceUserByName(username, resourceToken);
-
-        if (!currentUser || !resourceToken)
+        if (!currentUser || generalClientPassword !== password)
           return res
             .status(401)
-            .json({ message: 'Internal Server Error', code: 401 })
+            .json({ message: 'Unauthorized', code: 401 })
             .end();
-
-        const accessToken = _accessToken.generate(currentUser);
-        const refreshToken = _refreshToken.generate(currentUser);
-
-        if (!accessToken || !refreshToken)
-          return res
-            .status(500)
-            .json({ message: 'Internal Server Error', code: 500 })
-            .end();
-
-        session.setItem(currentUser.id, {
-          accessToken,
-          refreshToken,
-          resourceToken,
-        });
-
+        const accessToken = _generateAccessToken(currentUser);
         return res
           .status(200)
           .json({
-            accessToken: accessToken,
-            expires_in: expiringTime,
-            refreshToken: refreshToken,
-            type: 'Bearer',
+            token: accessToken,
+            expires_in: expiringAccessTokenTime,
+            type: tokenType,
           })
           .end();
       } catch (err) {
-        res.status(500).json({ error: JSON.stringify(err) });
+        next(err);
       }
     },
-    check: async (req, res) => {
+    check: async (req, res, next) => {
       try {
         const accessToken = req.headers.authorization
           ? req.headers.authorization.split(' ')[1]
@@ -166,15 +155,32 @@ module.exports.OAuth2 = ({ cache, expiresIn }) => {
 
         req.session = session;
 
-        // const userSession = session.getItem(username);
-
         next();
       } catch (err) {
-        res.status(500).json({ error: JSON.stringify(err) });
+        next(err);
       }
     },
-    client: (clientId) => {
-      return {};
+    resourceToken: {
+      get: () =>
+        new Promise(async (resolve, reject) => {
+          try {
+            const resourceToken = await _getResourceToken();
+
+            resolve(resourceToken);
+          } catch (err) {
+            reject(err);
+          }
+        }),
+      refresh: () =>
+        new Promise(async (resolve, reject) => {
+          try {
+            const resourceToken = await _generateResourceToken();
+
+            resolve(resourceToken);
+          } catch (err) {
+            reject(err);
+          }
+        }),
     },
   };
 };

@@ -42,7 +42,7 @@ module.exports.validate = (paramValue, paramName = 'parameter') => {
   };
 
   const _isInteger = () => {
-    if (paramValue && !Number.isInteger(paramValue))
+    if (paramValue && !Number.isInteger(+paramValue))
       throw new Error(`'${paramName}' must be a integer`);
     return generalReturn;
   };

@@ -35,9 +35,13 @@ module.exports.Clients = ({ dataAccess }) => {
         )
           return res.status(403).json({ message: 'Forbidden' }).end();
 
-        const { item } = await _Clients.findOne(clientId);
+        const clientId =
+          currentClientRole === 'admin' ? solicitedClientId : currentClientId;
 
-        res.status(200).json(item);
+        const { item } = await _Clients.findOneBy('id', clientId);
+        if (!item) return res.status(404).json({ messag: 'Not Found' }).end();
+
+        res.status(200).json(item).end();
       } catch (err) {
         next(err);
       }
@@ -55,14 +59,12 @@ module.exports.Clients = ({ dataAccess }) => {
         const currentClientId = req.session.clientId;
         const currentClientRole = req.session.role;
         const { limit = 10, page = 1, name } = req.query;
-
         const { items } = await _Clients.findMany({
           limit,
           page,
           name,
-          clientId: currentClientRole !== 'admin' ? currentClientId : undefined,
+          id: currentClientRole !== 'admin' ? currentClientId : undefined,
         });
-
         res.status(200).json(items);
       } catch (err) {
         next(err);

@@ -1,3 +1,5 @@
+const { validate } = require('../../Utils/validate');
+
 /**
  * Policies module (factory function)
  *
@@ -25,8 +27,17 @@ module.exports.Policies = ({ dataAccess }) => {
       try {
         const solicitedPolicyId = req.params.policyId;
         const { role, clientId } = req.session;
-
-        const { item } = await data.findOne(solicitedPolicyId);
+        debugger;
+        const { item } = await _Policies.findOneBy(
+          'id',
+          solicitedPolicyId
+        );
+        debugger;
+        if (!item && role === 'admin') {
+          return res.status(404).json({ code: 404, message: 'Not Found' });
+        } else if (!item) {
+          return res.status(403).json({ code: 403, message: 'Forbidden' });
+        }
 
         if (item.clientId !== clientId && role !== 'admin')
           return res.status(403).json({ code: 403, message: 'Forbidden' });
@@ -46,11 +57,15 @@ module.exports.Policies = ({ dataAccess }) => {
      */
     list: async (req, res, next) => {
       try {
+        validate(req.query.page, 'page').integer();
+        validate(req.query.limit, 'limit').integer();
+
         const currentClientId = req.session.clientId;
         const currentClientRole = req.session.role;
-        const { page = 1, limit = 10 } = req.query;
+        const page = req.query.page ? +req.query.page : 1;
+        const limit = req.query.limit ? +req.query.limit : 10;
 
-        const { items } = await data.findMany({
+        const { items } = await _Policies.findMany({
           page,
           limit,
           clientId: currentClientRole !== 'admin' ? currentClientId : undefined,
@@ -81,7 +96,7 @@ module.exports.Policies = ({ dataAccess }) => {
         )
           return res.status(403).json({ code: 403, message: 'Forbidden' });
 
-        const { items } = await data.findMany({
+        const { items } = await _Policies.findMany({
           clientId: solicitedClientId,
         });
 
