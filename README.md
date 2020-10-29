@@ -41,11 +41,16 @@ Recomendations:
 ## Preparation details
 
 ### Class Diagram
-<!-- todo  -->
+![img](img/class_diagram.jpg)
 
+todo
 ## Solution Details 
-<!-- todo  -->
+
+todo
+### Auth flow
+![img](img/auth_flow.jpg)
+todo
 
 ## How to Use
-<!-- todo  -->
+todo
 
