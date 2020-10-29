@@ -124,15 +124,17 @@ module.exports.DataAccess = ({ uri, cache, authorization }) => {
           if (id && typeof id === 'string')
             filters.push((obj) => obj.id === id);
 
-          const filteredAndPaginatedItems = items.filter((testedItem) => {
+          let filteredAndPaginatedItems = items.filter((testedItem) => {
             if (filters.every((filter) => filter(testedItem)))
               return testedItem;
           });
-          const arr = filteredAndPaginatedItems.splice(
-            (page - 1) * limit,
-            limit
-          );
-          resolve({ items: arr });
+          
+          if (page && limit)
+            filteredAndPaginatedItems = filteredAndPaginatedItems.splice(
+              (page - 1) * limit,
+              limit
+            );
+          resolve({ items: filteredAndPaginatedItems });
         } catch (err) {
           reject(err);
         }
