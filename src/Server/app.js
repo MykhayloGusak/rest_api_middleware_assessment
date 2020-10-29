@@ -5,6 +5,10 @@ const bodyParser = require('body-parser');
 const morgan = require('morgan');
 // const config = require('config');
 require('dotenv').config();
+
+const swaggerUi = require('swagger-ui-express');
+const swaggerDocument = require('../../swagger.json');
+
 let port = process.env.PORT || 3000;
 
 const api = require('../Routes');
@@ -27,6 +31,9 @@ const App = () => {
   // HTTP request logger middleware
   app.use(morgan('dev'));
 
+  // swagger documentation
+  app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+
   // user user router
   app.use('/api/v1', api);
 
@@ -35,9 +42,6 @@ const App = () => {
 
   // set port
   app.set('port', port || 3030);
-
-  // swagger documentation
-  // app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
   // app.use('/api/v1', api);
 
