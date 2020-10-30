@@ -1,6 +1,6 @@
 const faker = require('faker');
 
-const { validate } = require('../../src/Validation');
+const { validate } = require('../../src/Utils/validate');
 
 describe('> validate<module>', () => {
   describe('> validate()', () => {
