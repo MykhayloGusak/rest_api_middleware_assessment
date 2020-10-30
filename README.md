@@ -37,20 +37,79 @@ Recomendations:
 - In a possible interview, you can be asked for any part of your code, therefore, if you get some snippet or code from internet, be sure you understand how it works.
 - Use the framework you feel more comfortable using (express.js, fastify...).
 
+### Installation
 
-## Preparation details
+Use the package manager [npm](https://www.npmjs.com/) to install Middleware REST API.
+
+```bash
+npm install
+```
+
+### Usage
+
+To start the project in production mode:
+
+```bash
+npm start
+```
+
+To start the project in dev mode:
+
+```bash
+npm run dev
+```
+
+### Testing
+
+To start all tests:
+
+```bash
+npm run test
+```
+
+To start unit testing:
+
+```bash
+npm run test:unit
+```
+
+To start integration testing:
+
+```bash
+npm run test:int
+```
+
+To start end to end testing:
+
+```bash
+npm run test:e2e
+```
+
+To debug tests:
+
+```bash
+npm run test:d
+```
+
+### Debug
+
+To start debug mode:
+
+```bash
+npm run dev:d
+```
 
 ### Class Diagram
+
 ![img](img/class_diagram.jpg)
 
-todo
 ## Solution Details 
 
-todo
-### Auth flow
+- Dependency injection
+  ...
+- Factory function
+  ...
+- OAuth2 flow imitation
 ![img](img/auth_flow.jpg)
-todo
-
-## How to Use
-todo
+...
 
