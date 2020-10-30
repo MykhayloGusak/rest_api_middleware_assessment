@@ -59,6 +59,12 @@ To start the project in dev mode:
 npm run dev
 ```
 
+### Documentation
+
+Once the project is started, use  [this](http://localhost:3000/docs) link to see swagger documentation.
+
+Endpoint: http://localhost:3000/docs
+
 ### Testing
 
 To start all tests:
