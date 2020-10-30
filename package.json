@@ -4,10 +4,16 @@
   "description": "Backend API REST for Insurance Company (Assessment)",
   "main": "index.js",
   "scripts": {
-    "start": "node src/index.js",
+    "start": "set NODE_ENV=production&& node src/index.js",
     "dev": "nodemon src/index.js",
     "dev:d": "node --inspect-brk src/index.js",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test": "set NODE_ENV=test&& jest",
+    "test:w": "set NODE_ENV=test&& jest --watch",
+    "test:d": "set NODE_ENV=test&& node --inspect-brk ./node_modules/jest/bin/jest.js --runInBand",
+    "test:unit": "set NODE_ENV=test&& jest __test__/unit/",
+    "test:int": "set NODE_ENV=test&& jest __test__/int/",
+    "test:e2e": "set NODE_ENV=test&& jest __test__/e2e/",
   },
   "repository": {
     "type": "git",
@@ -26,6 +32,10 @@
     "url": "https://github.com/MykhayloGusak/rest_api_middleware_assessment/issues"
   },
   "homepage": "https://github.com/MykhayloGusak/rest_api_middleware_assessment#readme",
+  "jest": {
+    "verbose": true,
+    "testEnvironment": "node"
+  },
   "dependencies": {
     "axios": "^0.21.0",
     "body-parser": "^1.19.0",
@@ -36,11 +46,13 @@
     "helmet": "^4.1.1",
     "jsonwebtoken": "^8.5.1",
     "morgan": "^1.10.0",
-    "nodemon": "^2.0.6",
-    "swagger-ui-express": "^4.1.4",
-    "yamljs": "^0.3.0"
+    "swagger-ui-express": "^4.1.4"
   },
   "devDependencies": {
-    "eslint": "^7.12.1"
+    "nodemon": "^2.0.6",
+    "eslint": "^7.12.1",
+    "faker": "^5.1.0",
+    "jest": "^26.6.1",
+    "supertest": "^6.0.0"
   }
 }

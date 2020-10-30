@@ -1,0 +1,8 @@
+{
+  "uri": {
+    "axa_clients": "https://dare-nodejs-assessment.herokuapp.com/api/clients",
+    "axa_policies": "https://dare-nodejs-assessment.herokuapp.com/api/policies",
+    "axa_login": "https://dare-nodejs-assessment.herokuapp.com/api/login"
+  },
+  "port": 3000
+}
