@@ -21,6 +21,9 @@ const App = () => {
   //support application/x-www-form-urlencoded post data
   app.use(bodyParser.urlencoded({ extended: false }));
 
+  // add helment protection
+  app.use(helmet());
+
   // parse content into JSON
   app.use(express.json());
 
