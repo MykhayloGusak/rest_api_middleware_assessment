@@ -59,6 +59,12 @@ To start the project in dev mode:
 npm run dev
 ```
 
+### User credentials
+
+To log into the middleware api you can use a "name" of any user of the list and a general password "123".
+
+    password: 123
+
 ### Documentation
 
 Once the project is started, use  [this](http://localhost:3000/docs) link to see swagger documentation.
